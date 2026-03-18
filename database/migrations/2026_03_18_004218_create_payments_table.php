@@ -24,6 +24,7 @@ return new class extends Migration
             $table->string('status')->default('pending'); // pending, paid, failed
 
             $table->string('stripe_payment_intent_id')->nullable();
+            $table->string('stripe_client_secret')->nullable();
 
             $table->timestamp('paid_at')->nullable();
 

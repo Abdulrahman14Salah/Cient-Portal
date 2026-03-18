@@ -4,26 +4,28 @@ namespace App\Modules\Payment\Services;
 
 use App\Modules\Integration\Stripe\StripeService;
 use App\Modules\Payment\Models\Payment;
+use Stripe\Stripe;
 
 class PaymentService
 {
-    public function __construct(private StripeService $stripe) {}
+    private StripeService $stripe;
 
-    public function createPaymentIntent(Payment $payment)
+    public function __construct(StripeService $stripe)
+    {
+        $this->stripe = $stripe;
+    }
+
+    public function createPaymentIntent(Payment $payment): ?string
     {
         if ($payment->status !== 'pending') {
             return null;
         }
 
-        if (
-            $payment->stripe_payment_intent_id &&
-            $payment->stripe_client_secret &&
-            $payment->status === 'pending'
-        ) {
-            return $payment->stripe_client_secret;
-        }
+        \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
+
 
         $intent = $this->stripe->createPaymentIntent($payment);
+
 
         $payment->update([
             'stripe_payment_intent_id' => $intent->id,

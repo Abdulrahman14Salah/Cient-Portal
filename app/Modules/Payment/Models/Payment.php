@@ -16,4 +16,9 @@ class Payment extends Model
         'stripe_payment_intent_id',
         'paid_at',
     ];
+
+    public function application()
+    {
+        return $this->belongsTo(\App\Modules\Application\Models\Application::class);
+    }
 }

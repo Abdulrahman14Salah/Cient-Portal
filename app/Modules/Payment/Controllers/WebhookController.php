@@ -26,7 +26,7 @@ class WebhookController extends Controller
             return response('Invalid signature', 400);
         }
 
-        // 🔥 Handle events
+        // Handle events
         switch ($event->type) {
 
             case 'payment_intent.succeeded':
@@ -45,33 +45,48 @@ class WebhookController extends Controller
     }
 
     /**
-     * ✅ Payment succeeded
+     *  Payment succeeded
      */
     private function handlePaymentSucceeded($intent)
     {
+        \Log::info('PaymentIntent succeeded', [
+            'intent_id' => $intent->id,
+        ]);
+
         $payment = Payment::where('stripe_payment_intent_id', $intent->id)->first();
 
         if (!$payment) {
-            Log::warning('Payment not found', ['intent' => $intent->id]);
+            \Log::warning('Payment not found', ['intent' => $intent->id]);
             return;
         }
 
-        // 🔥 IMPORTANT: prevent duplicate processing
+        // لو already paid متعملش حاجة
         if ($payment->status === 'paid') {
-            Log::info('Payment already processed', ['payment_id' => $payment->id]);
             return;
         }
 
+        //  تحديث الدفع
         $payment->update([
             'status' => 'paid',
             'paid_at' => now(),
         ]);
 
-        $this->unlockNextStage($payment);
+        // 🔓 فتح المرحلة اللي بعدها
+        if ($payment->stage == 1) {
+            Payment::where('application_id', $payment->application_id)
+                ->where('stage', 2)
+                ->update(['status' => 'pending']);
+        }
+
+        if ($payment->stage == 2) {
+            Payment::where('application_id', $payment->application_id)
+                ->where('stage', 3)
+                ->update(['status' => 'pending']);
+        }
     }
 
     /**
-     * ❌ Payment failed
+     ** Payment failed
      */
     private function handlePaymentFailed($intent)
     {
@@ -95,12 +110,13 @@ class WebhookController extends Controller
     }
 
     /**
-     * 🔓 Unlock next stage logic
+     ** Unlock next stage logic
      */
-    private function unlockNextStage(Payment $payment)
+    private function unlockNextStage(Payment $payment): void
     {
         Payment::where('case_id', $payment->case_id)
             ->where('stage', $payment->stage + 1)
+            ->where('status', 'locked')
             ->update(['status' => 'pending']);
     }
 }

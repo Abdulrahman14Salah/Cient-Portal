@@ -2,6 +2,8 @@
 
 namespace App\Modules\Integration\Stripe;
 
+use App\Modules\Payment\Models\Payment;
+
 use Stripe\Stripe;
 use Stripe\PaymentIntent;
 
@@ -12,16 +14,13 @@ class StripeService
         Stripe::setApiKey(config('services.stripe.secret'));
     }
 
-    public function createPaymentIntent($payment)
+    public function createPaymentIntent(Payment $payment): \Stripe\PaymentIntent
     {
-        $intent = PaymentIntent::create([
-            'amount' => $payment->amount * 100, // cents
+        return PaymentIntent::create([
+            'amount'   => (int) round($payment->amount * 100),
             'currency' => $payment->currency,
-            'metadata' => [
-                'payment_id' => $payment->id,
-            ],
+            'metadata' => ['payment_id' => $payment->id],
+            'payment_method_types' => ['card'],
         ]);
-
-        return $intent;
     }
 }

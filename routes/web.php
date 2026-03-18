@@ -1,8 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Modules\Payment\Controllers\PaymentController;
-use App\Modules\Payment\Controllers\WebhookController;
+use App\Modules\Application\Controllers\ApplicationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -11,7 +10,7 @@ use App\Modules\Payment\Controllers\WebhookController;
 */
 
 Route::get('/', function () {
-    return view('client.dashboard');
+    return view('apply');
 });
 
 
@@ -40,10 +39,5 @@ Route::middleware(['auth'])->group(function () {
 });
 
 
-/*
-|--------------------------------------------------------------------------
-| Webhook Routes
-|--------------------------------------------------------------------------
-*/
-
-Route::post('/stripe/webhook', [WebhookController::class, 'handle']);
+Route::get('/apply', [ApplicationController::class, 'create'])->name('apply.create');
+Route::post('/apply', [ApplicationController::class, 'store'])->name('apply.store');
