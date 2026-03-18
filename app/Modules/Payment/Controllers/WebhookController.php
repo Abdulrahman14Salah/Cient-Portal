@@ -85,6 +85,10 @@ class WebhookController extends Controller
             return;
         }
 
+        if ($payment->status === 'paid') {
+            return;
+        }
+
         $payment->update([
             'status' => 'failed',
         ]);
@@ -95,18 +99,8 @@ class WebhookController extends Controller
      */
     private function unlockNextStage(Payment $payment)
     {
-        // Stage 1 → unlock Stage 2
-        if ($payment->stage == 1) {
-            Payment::where('case_id', $payment->case_id)
-                ->where('stage', 2)
-                ->update(['status' => 'pending']);
-        }
-
-        // Stage 2 → unlock Stage 3
-        if ($payment->stage == 2) {
-            Payment::where('case_id', $payment->case_id)
-                ->where('stage', 3)
-                ->update(['status' => 'pending']);
-        }
+        Payment::where('case_id', $payment->case_id)
+            ->where('stage', $payment->stage + 1)
+            ->update(['status' => 'pending']);
     }
 }

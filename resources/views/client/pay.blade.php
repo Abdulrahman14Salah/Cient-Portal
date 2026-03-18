@@ -17,7 +17,6 @@
 
             document.getElementById("payBtn").addEventListener("click", async () => {
 
-
                 const res = await fetch("/payments/1/intent", {
                     method: "POST",
                     headers: {
@@ -31,7 +30,7 @@
                 console.log(data);
 
                 if (!response.ok || !data.client_secret) {
-                    alert(data.message);
+                    alert(data.message || "Payment not allowed");
                     return;
                 }
 

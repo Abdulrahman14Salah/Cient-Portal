@@ -14,11 +14,7 @@ class PaymentController extends Controller
     public function createIntent(Payment $payment): JsonResponse
     {
 
-        if ($payment->user_id !== auth()->id()) {
-            return response()->json([
-                'message' => 'Unauthorized'
-            ], 403);
-        }
+        abort_if($payment->user_id !== auth()->id(), 403);
 
         try {
 

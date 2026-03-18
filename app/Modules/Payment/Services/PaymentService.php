@@ -15,7 +15,11 @@ class PaymentService
             return null;
         }
 
-        if ($payment->stripe_payment_intent_id && $payment->stripe_client_secret) {
+        if (
+            $payment->stripe_payment_intent_id &&
+            $payment->stripe_client_secret &&
+            $payment->status === 'pending'
+        ) {
             return $payment->stripe_client_secret;
         }
 
